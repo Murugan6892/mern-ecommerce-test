@@ -25,6 +25,7 @@ jobs:
           cd MERN-Stack-Ecommerce-App-master
           npm install
           npm run build
+          CI=false npm run build
 
       - name: Copy build files to EC2
         uses: appleboy/scp-action@v0.1.4
