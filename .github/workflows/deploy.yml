@@ -1,50 +1,49 @@
-name: 🚀 Auto Deploy React App to EC2
+name: 🚀 Deploy MERN App to EC2
 
 on:
   push:
-    branches: [ main ]
-  workflow_dispatch:
+    branches:
+      - main
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1 — Checkout code from GitHub
-      - name: Checkout Repository
+      - name: 🧩 Checkout repository
         uses: actions/checkout@v3
 
-      # Step 2 — Use Node.js 18 for build
-      - name: Setup Node.js
+      - name: ⚙️ Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 18
 
-      # Step 3 — Install and Build the React app
-      - name: Install & Build
-        working-directory: ./MERN-Stack-Ecommerce-App-master
-        run: |
-          npm install
-          CI=false npm run build
+      - name: 📦 Install dependencies
+        working-directory: MERN-Stack-Ecommerce-App-master
+        run: npm install
 
-      # Step 4 — Deploy build folder to EC2 instance
-      - name: 🚀 Deploy to EC2 via SCP
-  uses: appleboy/scp-action@v0.1.4
-  with:
-    host: 13.234.4.41
-    username: ubuntu
-    key: ${{ secrets.EC2_SSH_KEY }}
-    source: "MERN-Stack-Ecommerce-App-master/build/*"
-    target: "/var/www/html/"
-    overwrite: true
+      - name: 🏗️ Build frontend
+        working-directory: MERN-Stack-Ecommerce-App-master
+        run: npm run build
 
-
-      # Step 5 — Restart Nginx (optional)
-      - name: Restart Nginx
-        uses: appleboy/ssh-action@v0.1.6
+      - name: 📤 Deploy build files to EC2
+        uses: appleboy/scp-action@v0.1.4
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
+          username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
+          source: "MERN-Stack-Ecommerce-App-master/build/*"
+          target: "/var/www/html"
+          overwrite: true
+          port: 22
+
+      - name: 🔁 Restart Nginx on EC2
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
           script: |
             sudo systemctl restart nginx
+            echo "✅ Nginx restarted successfully!"
