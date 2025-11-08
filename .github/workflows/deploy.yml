@@ -24,7 +24,8 @@ jobs:
 
       - name: Build App
         working-directory: MERN-Stack-Ecommerce-App-master
-        run: npm run build
+        run: CI=false npm run build
+
 
       - name: Deploy to EC2
         uses: appleboy/scp-action@v0.1.4
