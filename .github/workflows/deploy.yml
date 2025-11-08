@@ -1,4 +1,3 @@
-
 name: Deploy to EC2
 
 on:
@@ -7,32 +6,35 @@ on:
       - main
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
-      - name: Copy files to EC2 via SSH
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: 13.234.4.41
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          source: "."
-          target: "/home/ubuntu/mern-ecommerce-practice"
+    - name: Build frontend
+      run: |
+        cd MERN-Stack-Ecommerce-App-master
+        npm install
+        npm run build
 
-      - name: Run remote deployment commands
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: 13.234.4.41
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            cd /home/ubuntu/mern-ecommerce-practice/MERN-Stack-Ecommerce-App-master
-            npm install
-            npm run build
-            sudo rm -rf /var/www/html/*
-            sudo cp -r build/* /var/www/html/
-            sudo systemctl restart nginx
+    - name: Copy build folder to EC2
+      uses: appleboy/scp-action@v0.1.4
+      with:
+        host: 13.234.4.41
+        username: ubuntu
+        key: ${{ secrets.EC2_SSH_KEY }}
+        source: "MERN-Stack-Ecommerce-App-master/build/*"
+        target: "/var/www/html"
+
+    - name: Fix permissions and restart Nginx
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: 13.234.4.41
+        username: ubuntu
+        key: ${{ secrets.EC2_SSH_KEY }}
+        script: |
+          sudo chown -R www-data:www-data /var/www/html
+          sudo chmod -R 755 /var/www/html
+          sudo systemctl restart nginx
