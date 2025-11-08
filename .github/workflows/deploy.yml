@@ -1,40 +1,49 @@
-name: Deploy to EC2
+name: Deploy MERN App to EC2
 
 on:
   push:
     branches:
-      - main
+      - main  # runs every time you push code to the main branch
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
+      # Step 1: Checkout repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Build frontend
-      run: |
-        cd MERN-Stack-Ecommerce-App-master
-        npm install
-        CI=false npm run build
+      # Step 2: Set up Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
 
-    - name: Copy build folder to EC2
-      uses: appleboy/scp-action@v0.1.4
-      with:
-        host: 13.234.4.41
-        username: ubuntu
-        key: ${{ secrets.EC2_SSH_KEY }}
-        source: "MERN-Stack-Ecommerce-App-master/build/*"
-        target: "/var/www/html"
+      # Step 3: Install dependencies and build frontend
+      - name: Install and Build
+        run: |
+          cd MERN-Stack-Ecommerce-App-master
+          npm install
+          CI=false npm run build
 
-    - name: Fix permissions and restart Nginx
-      uses: appleboy/ssh-action@v1.0.0
-      with:
-        host: 13.234.4.41
-        username: ubuntu
-        key: ${{ secrets.EC2_SSH_KEY }}
-        script: |
-          sudo chown -R www-data:www-data /var/www/html
-          sudo chmod -R 755 /var/www/html
-          sudo systemctl restart nginx
+      # Step 4: Copy build files to EC2
+      - name: Deploy to EC2 (Copy files)
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          source: "MERN-Stack-Ecommerce-App-master/build/*"
+          target: "/var/www/html"
+
+      # Step 5: Restart Nginx automatically
+      - name: Restart Nginx
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            sudo systemctl restart nginx
+            echo "✅ Deployment completed successfully!"
