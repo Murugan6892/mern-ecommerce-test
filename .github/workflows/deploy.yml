@@ -1,69 +1,52 @@
-name: 🚀 Auto Deploy MERN App to EC2
+name: Deploy to EC2
 
 on:
   push:
     branches:
-      - main  # deploy automatically when pushing to main branch
+      - main  # Runs only when you push to main branch
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 📥 Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: 🧰 Set up Node.js
+      - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 18
 
-      # ===================== FRONTEND BUILD =====================
-      - name: ⚙️ Install dependencies & build frontend
-        working-directory: ./MERN-Stack-Ecommerce-App-master
-        run: |
-          npm install
-          npm run build || echo "⚠️ Build warnings ignored"
+      - name: Install dependencies
+        run: npm install
 
-      # ===================== DEPLOY TO EC2 =====================
-      - name: 📤 Deploy Frontend and Backend to EC2
+      - name: Build frontend
+        run: |
+          cd MERN-Stack-Ecommerce-App-master
+          npm install
+          CI=false npm run build
+
+      - name: Copy build files to EC2
         uses: appleboy/scp-action@v0.1.4
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
-          key: ${{ secrets.EC2_KEY }}
+          key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
-          source: "MERN-Stack-Ecommerce-App-master/build/*,MERN-Stack-Ecommerce-App-master/backend/*"
-          target: "/home/ubuntu/mern-ecommerce-deploy"
+          source: "MERN-Stack-Ecommerce-App-master/build/*"
+          target: "/var/www/html"
           overwrite: true
 
-      - name: 🧠 Run post-deployment commands on EC2
-        uses: appleboy/ssh-action@v1.1.0
+      - name: Restart Nginx on EC2
+        uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
-          key: ${{ secrets.EC2_KEY }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
           script: |
-            echo "🚀 Starting Deployment on EC2"
-
-            # Move frontend build to Nginx
-            sudo rm -rf /var/www/html/*
-            sudo cp -r /home/ubuntu/mern-ecommerce-deploy/MERN-Stack-Ecommerce-App-master/build/* /var/www/html/
             sudo chown -R www-data:www-data /var/www/html
             sudo chmod -R 755 /var/www/html
-
-            # Restart Nginx
             sudo systemctl restart nginx
-            echo "✅ Frontend deployed successfully."
-
-            # Setup backend (Node server)
-            cd /home/ubuntu/mern-ecommerce-deploy/MERN-Stack-Ecommerce-App-master/backend
-            npm install --force
-
-            # Kill any previous backend process and restart via PM2
-            sudo npm install -g pm2
-            pm2 delete all || true
-            pm2 start npm --name "fusion-backend" -- start
-            pm2 save
-
-            echo "✅ Backend deployed successfully and running under PM2."
+            echo "✅ Deployment completed successfully"
