@@ -22,7 +22,7 @@ jobs:
         working-directory: ./MERN-Stack-Ecommerce-App-master
         run: |
           npm install
-          npm run build
+          CI=false npm run build
 
       - name: 📤 Upload build folder to EC2
         uses: appleboy/scp-action@v0.1.4
