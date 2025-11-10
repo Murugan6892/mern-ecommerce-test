@@ -1,39 +1,41 @@
-name: 🚀 Deploy React Frontend to EC2 with Docker
+name: 🚀 Deploy MERN Ecommerce App to EC2
 
 on:
   push:
     branches:
-      - main  # or master, depending on your default branch
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1 — Checkout repository
-      - name: 🧾 Checkout code
+      - name: 🧾 Checkout repository
         uses: actions/checkout@v3
 
-      # Step 2 — Build React app
+      - name: ⚙️ Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
       - name: 🏗️ Build React App
+        working-directory: ./MERN-Stack-Ecommerce-App-master
         run: |
           npm install
           npm run build
 
-      # Step 3 — Copy all files to EC2 (includes Dockerfile and build)
-      - name: 📤 Upload project to EC2
+      - name: 📤 Upload build folder to EC2
         uses: appleboy/scp-action@v0.1.4
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
-          source: "."
+          source: "MERN-Stack-Ecommerce-App-master/build/*"
           target: "/home/ubuntu/app"
           overwrite: true
 
-      # Step 4 — SSH into EC2 and rebuild Docker container
-      - name: 🐳 Build & Restart Docker Container on EC2
+      - name: 🔁 Restart Docker Container on EC2
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -41,15 +43,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd /home/ubuntu/app
-
-            echo "🧹 Cleaning up old containers..."
             docker stop frontend || true
             docker rm frontend || true
-
-            echo "⚙️ Building new Docker image..."
             docker build -t fusion-frontend .
-
-            echo "🚀 Starting container..."
             docker run -d --name frontend -p 80:80 fusion-frontend
-
-            echo "✅ Deployment complete!"
