@@ -3,7 +3,7 @@ name: 🚀 Deploy MERN Ecommerce App to EC2
 on:
   push:
     branches:
-      - main
+      - main  # or master
 
 jobs:
   deploy:
@@ -24,6 +24,17 @@ jobs:
           npm install
           CI=false npm run build
 
+      # ✅ Step 1: Ensure /home/ubuntu/app exists on EC2
+      - name: 🪄 Create app directory on EC2
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            mkdir -p /home/ubuntu/app
+
+      # ✅ Step 2: Copy build folder to EC2
       - name: 📤 Upload build folder to EC2
         uses: appleboy/scp-action@v0.1.4
         with:
@@ -35,7 +46,8 @@ jobs:
           target: "/home/ubuntu/app"
           overwrite: true
 
-      - name: 🔁 Restart Docker Container on EC2
+      # ✅ Step 3: Restart Docker or serve files
+      - name: 🔁 Restart Docker Container
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.EC2_HOST }}
