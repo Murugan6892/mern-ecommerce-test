@@ -28,14 +28,26 @@ pipeline {
             }
         }
 
-        stage('Build Frontend Docker Image') {
-            steps {
-                sh """
-                docker build -t ${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${FRONTEND_REPO}:latest \
-                -f ${FRONTEND_DOCKERFILE} .
-                """
-            }
+        stage('Build Frontend App') {
+    steps {
+        dir('MERN-Stack-Ecommerce-App-master') {
+            sh """
+            npm install
+            CI=false npm run build
+            """
         }
+    }
+}
+
+        stage('Build Frontend Docker Image') {
+          steps {
+        sh """
+        docker build -t ${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${FRONTEND_REPO}:latest \
+        -f ${FRONTEND_DOCKERFILE} MERN-Stack-Ecommerce-App-master
+        """
+    }
+}
+
 
         stage('Build Backend Docker Image') {
             steps {
