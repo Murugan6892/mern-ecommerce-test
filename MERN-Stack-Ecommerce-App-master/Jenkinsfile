@@ -2,21 +2,19 @@ pipeline {
     agent any
 
     environment {
-        ACCOUNT_ID       = "070622743298"
-        AWS_REGION       = "us-east-1"
+    PATH = "/usr/bin:/bin:/usr/local/bin:${env.PATH}"  // Add Node & npm to Jenkins PATH
+    ACCOUNT_ID       = "070622743298"
+    AWS_REGION       = "us-east-1"
 
-        FRONTEND_REPO    = "mern-frontend"
-        BACKEND_REPO     = "mern-backend"
+    FRONTEND_REPO    = "mern-frontend"
+    BACKEND_REPO     = "mern-backend"
 
-        FRONTEND_DOCKERFILE = "MERN-Stack-Ecommerce-App-master/Dockerfile"
-        BACKEND_DOCKERFILE  = "MERN-Stack-Ecommerce-App-master/backend/Dockerfile"
+    FRONTEND_DOCKERFILE = "MERN-Stack-Ecommerce-App-master/Dockerfile"
+    BACKEND_DOCKERFILE  = "MERN-Stack-Ecommerce-App-master/backend/Dockerfile"
 
-        FRONTEND_PORT    = "80"
-        BACKEND_PORT     = "9000"
-
-        // Ensure aws CLI and docker are found
-        PATH = "/snap/bin:/usr/local/bin:/usr/bin:/bin:${env.PATH}"
-    }
+    FRONTEND_PORT    = "80"
+    BACKEND_PORT     = "3000"
+}
 
     stages {
 
