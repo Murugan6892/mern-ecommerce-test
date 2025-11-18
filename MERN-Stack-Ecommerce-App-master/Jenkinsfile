@@ -83,7 +83,7 @@ pipeline {
         stage('Deploy on EC2 Slave') {
             steps {
                 sh """
-                ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} '
+                ssh -o StrictHostKeyChecking=no ${Jenkins}@${EC2_HOST} '
                   aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
 
                   docker pull ${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${FRONTEND_REPO}:latest
