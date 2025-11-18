@@ -27,15 +27,17 @@ pipeline {
         }
 
         stage('Build Frontend App') {
-            steps {
-                dir('MERN-Stack-Ecommerce-App-master') {
-                    sh '''
-                    npm install
-                    CI=false npm run build
-                    '''
-                }
-            }
+    steps {
+        dir('MERN-Stack-Ecommerce-App-master') {
+            sh '''
+            export PATH=/usr/bin:/bin:/usr/local/bin:$PATH
+            npm install
+            CI=false npm run build
+            '''
         }
+    }
+}
+
 
         stage('Build Frontend Docker Image') {
             steps {
