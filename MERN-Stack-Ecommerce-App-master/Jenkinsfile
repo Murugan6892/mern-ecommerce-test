@@ -15,7 +15,7 @@ pipeline {
         BACKEND_PORT     = "3000"
 
         // Ensure aws CLI and docker are found
-        PATH = "/snap/bin:/usr/local/bin:/usr/bin:/bin:${env.PATH}"
+        PATH = "/usr/local/bin:/usr/bin:/bin:${env.PATH}"
     }
 
     stages {
