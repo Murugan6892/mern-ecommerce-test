@@ -1,5 +1,5 @@
 pipeline {
-    agent { label 'master' }
+    agent none
 
     environment {
         ACCOUNT_ID       = "070622743298"
@@ -21,6 +21,7 @@ pipeline {
     stages {
 
         stage('Checkout Code') {
+            agent { label 'master' }
             steps {
                 git branch: 'main',
                     url: 'https://github.com/Murugan6892/mern-ecommerce-test.git',
