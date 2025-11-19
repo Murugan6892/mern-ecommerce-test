@@ -87,7 +87,7 @@ pipeline {
         }
 
         stage('Deploy on EC2 Slave') {
-            agent { label 'deploy node' } // replace with your slave label
+            agent { label 'deploy' } // replace with your slave label
             steps {
                 sh """
                     set -e
